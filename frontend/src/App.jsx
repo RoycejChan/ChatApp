@@ -7,11 +7,9 @@ function App() {
   const [message, setMessage] = useState(''); // State to store the message
   const [room, setRoom] = useState(0); // room user is in
   const [userActive, setUser] = useState(false);
-  // const usersInputs = document.getElementsByClassName('userInputs');
+  const [username, setUsername] = useState("");
 
 
-  
-  // listens to server for 'chatmsg'
   socket.on('chatmsg', (msg) => {
     if (msg  != "" ) {
         const msglist = document.getElementById("msglist");
@@ -26,24 +24,32 @@ function App() {
       console.log("please enter a message")
     }
 });
+
+
 //EMPTY UI WHEN USER LEAVES ENTIRE CHAT APP
 socket.on('leaveChat', () => {
   console.log("You have left the chat room app")
   const msglist = document.getElementById("msglist");
-  msglist.innerHTML = ""
+  setMessage("");
+  setRoom("");
+  setUser(false);
 })
-
+//CHANGE ROOM USER IS IN
 //UPDATE UI TO CURRENT CHAT APP TODO:
-socket.on('updateUI', () => {
+socket.on('changeRoom', () => {
     console.log("Changed UIS to current room")
     const msglist = document.getElementById("msglist");
     msglist.innerHTML = ""
+    setMessage("");
+    setRoom("");
   })
-                                    // EMIT FUNCTIONS
     // send message to server
   const sendMessage = () => {
     socket.emit('chatmsg', message);
   };
+
+
+
     //join room, if user doesnt enter room number, don't auto join
   const joinroom = (room) => {
     if (room === 0) {
@@ -63,7 +69,7 @@ socket.on('updateUI', () => {
 
   return (
     <>
-  
+          {/* DISPLAY APP ONLY WHEN USER ENTERS ROOM */}
     {userActive ? 
     <div>
       <h1>WELCOME TO THE CHAT ROOM</h1>
@@ -82,16 +88,26 @@ socket.on('updateUI', () => {
         </ul>
       </div> : <h1>JOIN A ROOM TO START CHATTING</h1>
     }
+          {/* END CONDITIONAL RENDER */}
 
 
+    {/* USER INPUTS FOR NAVIGATING THROUGH  */}
 
+      <input type="string"
+      onChange={(e) => setUsername(e.target.value)}
+      value={username}
+      />
 
       <input type="number"
       onChange={(e) => setRoom(e.target.value)}
       className='userInputs'
+      value={room}
       />
       <button onClick={()=>joinroom(room)}>join room</button>
       <button onClick={()=>leaveroom()}>leave room</button>
+    {/* END USE NAVIGATION */}
+
+      {/* CHAT MESSAGES  */}
       <p className='userLogs'></p>
       
     </>

@@ -25,20 +25,19 @@ const io = new Server(server, {
 // -- USER HAS TO ENTER ROOM NUMBER TO JOIN CHAT ROOM
 // DELETE CURRENT ROOM MESSAGES WHEN ENTERING NEW ONE
 //IF USER TRIES TO ENTER ROOM THEY ARE ALREADY IN, return
-
+//DELETE html inputs everytime user switches, leaves, or join room
 
 // TODO:
 //UPDATE MESSAGES TO CURENT ROOM WHEN SWITCHING ROOMS
 //SHOW on dom for 5 seconds when user enters or leaves currentRoom
 //DELETE messages only if they were the sender
-//DELETE html inputs everytime user switches, leaves, or join room
-
-
-
+//INCLUDE POCKET BASE FOR USER NAME AND MESSAGES ?
+//INCLUDE USERNAME FOR USER TO JOIN CHAT
+//TIE USERNAME TO MESSAGE SENT
 io.on("connection", (socket) => {
     console.log(`${socket.id} connected`);
     displaymsg(socket);
-
+    
     let currentRoom = null; //INITIAL STATE OF ROOM USER IS IN
     socket.on("joinroom", (room) => {
 
@@ -47,11 +46,12 @@ io.on("connection", (socket) => {
             console.log("you are already in this room")
             return;
         }else if(currentRoom) {
-            socket.emit("updateUI", (currentRoom));
+            //LEAVE CURRENT ROOM
+            socket.emit("changeRoom", (currentRoom));
             socket.leave(currentRoom);
             console.log(`${socket.id} left ${currentRoom}`);
         } 
-        
+            //JOIN NEW ROOM
         socket.join(room);
         currentRoom = room;
         console.log(`${socket.id} joined ${room}`);
