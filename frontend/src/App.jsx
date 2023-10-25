@@ -1,66 +1,79 @@
 import React, { useState, useEffect } from 'react';
 import io from "socket.io-client";
+const ENDPOINT = "http://localhost:3000";
 
-const socket = io.connect("http://localhost:3000");
+// Declare the socket globally
+let socket = null;
 
 function App() {
-  const [message, setMessage] = useState(''); // State to store the message
-  const [room, setRoom] = useState(0); // room user is in
+  const [message, setMessage] = useState('');
+  const [room, setRoom] = useState(0);
   const [userActive, setUser] = useState(false);
   const [username, setUsername] = useState("");
 
-//DISPLAYS MESSAGE W/USERNAME TO THE DOM
-  socket.on('chatmsg', ({ message, username }) => {
-    if (message  != "" ) {
-        const msglist = document.getElementById("msglist");
-        const inputmsg = document.createElement('li');
-        inputmsg.textContent = `${message} from ${username}`;
-        msglist.appendChild(inputmsg);
-                // Add an onclick event to the li element
-        inputmsg.onclick = () => {
-            console.log(`You clicked: ${message}`);
-        }      
-    } else {
-      console.log("please enter a message")
-    }
-});
+  useEffect(() => {
+    // Initialize the socket connection
+    socket = io(ENDPOINT);
 
+                            
+    //FUNCTIONS ONEFFECT
 
-//EMPTY UI WHEN USER LEAVES ENTIRE CHAT APP
-socket.on('leaveChat', () => {
-  console.log("You have left the chat room app")
-  const msglist = document.getElementById("msglist");
-  setMessage("");
-  setRoom("");
-  setUser(false);
-})
-//CHANGE ROOM USER IS IN
-//UPDATE UI TO CURRENT CHAT APP TODO:
-socket.on('changeRoom', () => {
-    console.log("Changed UIS to current room")
-    const msglist = document.getElementById("msglist");
-    msglist.innerHTML = ""
-    setMessage("");
-    setRoom("");
-  })
-    // send message to server
+    socket.on('chatmsg', ({ message, username }) => {
+      if (message  != "" ) {
+          const msglist = document.getElementById("msglist");
+          const inputmsg = document.createElement('li');
+          inputmsg.textContent = `${message} from ${username}`;
+          msglist.appendChild(inputmsg);
+          // Add an onclick event to the li element
+          inputmsg.onclick = () => {
+              console.log(`You clicked: ${message}`);
+          }      
+      } else {
+        console.log("please enter a message")
+      }
+    });
+
+    socket.on('leaveChat', () => {
+      console.log("You have left the chat room app");
+      const msglist = document.getElementById("msglist");
+      setMessage("");
+      setRoom("");
+      setUser(false);
+    });
+
+    socket.on('changeRoom', () => {
+      console.log("Changed UI to current room");
+      const msglist = document.getElementById("msglist");
+      msglist.innerHTML = "";
+      setMessage("");
+      setRoom("");
+    });
+
+    //END FUNCTIONS
+
+    // Clean up by removing event listeners when the component unmounts
+    return () => {
+      socket.off("connect");
+      socket.off('chatmsg');
+      socket.off('leaveChat');
+      socket.off('changeRoom');
+    };
+  }, []);
+
   const sendMessage = () => {
-    socket.emit('chatmsg', {message,username});
+    socket.emit('chatmsg', { message, username });
   };
 
-
-
-    //join room, if user doesnt enter room number, don't auto join
   const joinroom = (room) => {
     if (room === 0) {
-      console.log("Please enter a room")
+      console.log("Please enter a room");
       return;
     } else {
-    socket.emit("joinroom", room);
-    setUser(true);
+      socket.emit("joinroom", room);
+      setUser(true);
     }
   };
-  //leave room
+
   const leaveroom = () => {
     socket.emit("leaveroom", room);
   };
