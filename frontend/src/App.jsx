@@ -9,16 +9,16 @@ function App() {
   const [userActive, setUser] = useState(false);
   const [username, setUsername] = useState("");
 
-
-  socket.on('chatmsg', (msg) => {
-    if (msg  != "" ) {
+//DISPLAYS MESSAGE W/USERNAME TO THE DOM
+  socket.on('chatmsg', ({ message, username }) => {
+    if (message  != "" ) {
         const msglist = document.getElementById("msglist");
         const inputmsg = document.createElement('li');
-        inputmsg.textContent = msg;
+        inputmsg.textContent = `${message} from ${username}`;
         msglist.appendChild(inputmsg);
                 // Add an onclick event to the li element
         inputmsg.onclick = () => {
-            console.log(`You clicked: ${msg}`);
+            console.log(`You clicked: ${message}`);
         }      
     } else {
       console.log("please enter a message")
@@ -45,7 +45,7 @@ socket.on('changeRoom', () => {
   })
     // send message to server
   const sendMessage = () => {
-    socket.emit('chatmsg', message);
+    socket.emit('chatmsg', {message,username});
   };
 
 

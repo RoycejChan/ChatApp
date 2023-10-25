@@ -27,13 +27,17 @@ const io = new Server(server, {
 //IF USER TRIES TO ENTER ROOM THEY ARE ALREADY IN, return
 //DELETE html inputs everytime user switches, leaves, or join room
 
+//INCLUDE USERNAME FOR USER TO JOIN CHAT
+//TIE USERNAME TO MESSAGE SENT
+
+
 // TODO:
 //UPDATE MESSAGES TO CURENT ROOM WHEN SWITCHING ROOMS
 //SHOW on dom for 5 seconds when user enters or leaves currentRoom
 //DELETE messages only if they were the sender
 //INCLUDE POCKET BASE FOR USER NAME AND MESSAGES ?
-//INCLUDE USERNAME FOR USER TO JOIN CHAT
-//TIE USERNAME TO MESSAGE SENT
+
+
 io.on("connection", (socket) => {
     console.log(`${socket.id} connected`);
     displaymsg(socket);
@@ -68,15 +72,14 @@ io.on("connection", (socket) => {
 });
 
 function displaymsg(socket) {
-    socket.on('chatmsg', (message) => {
+    socket.on('chatmsg', ({ message,username }) => {
         // Get the room(s) the user is in
         const userRooms = Array.from(socket.rooms);
-
-        console.log(`User in rooms: ${userRooms.join(', ')}`);
-        console.log(`Received message from ${socket.id}: ${message}`);
+        console.log(username);
+        console.log(`Received message from ${username}: ${message}`);
 
         // send the message to everyone in current room (including sender)
-        socket.nsp.to(userRooms[1]).emit('chatmsg', message);
+        socket.nsp.to(userRooms[1]).emit('chatmsg', { message,username });
     })
 }
 
