@@ -131,47 +131,57 @@ function App() {
 
   return (
     <>
+    <div className={userActive ? 'black overflow-hidden' : 'purple overflow-hidden'}>
      {/* DISPLAY APP ONLY WHEN USER ENTERS ROOM */}
     {userActive ? 
-    <div className='chatroom-container flex flex-col text-7xl gap-12'>
-          <h1>WELCOME TO THE CHAT ROOM</h1>
-          <input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className='userInputs'
-          />
+    <div className="what"> {/* ".1px solid transparent border, dont know why not having this causes big gap on top of screen, deleting tailwind fixes it. idk ??" */}
+      <div className='chatroom-container bg-red-100 flex flex-col text-xl gap-2 border-4 my-12 mx-auto rounded-lg shadow-2xl shadow-blue-600'>
+        <h1 className='text-center flex items-center justify-center text-4xl w-full h-28 mt-4'>Chat.io 💬</h1>
+            
+        <div className="main-msging-app">
+            <ul id="msglist">
+              {messages.map((msg) => {
+                  return <li key={msg.id}>{msg.message}{msg.created}</li>
+                })}
+            </ul>
 
-          <button onClick={sendMessage}>Send Message</button>
-        
-          <input type="string"
-          onChange={(e) => setUsername(e.target.value)}
-          value={username}
-          />
-          
-              <button onClick={()=>joinroom(1)}              >
-              Casual Chat room
-                </button>
-              <button onClick={()=>joinroom(2)}>In-Game Chat Room</button>
-              <button onClick={()=>joinroom(3)}>AFK room</button>
+            <div className="sideBar">
+              <button onClick={sendMessage}>Send Message</button>
+            
+              <input type="string"
+              onChange={(e) => setUsername(e.target.value)}
+              value={username}
+              />
+              
+                  <button onClick={()=>joinroom(1)}>
+                  Casual Chat room
+                    </button>
+                  <button onClick={()=>joinroom(2)}>In-Game Chat Room</button>
+                  <button onClick={()=>joinroom(3)}>AFK room</button>
 
-          <button onClick={()=>exitRoom()} >EXIT CHAT ROOM</button>
-          <ul id="msglist">
+              <button onClick={()=>exitRoom()} >EXIT CHAT ROOM</button>
+              <p className='userLogs'>{userlog}</p>
 
-          </ul>
-          <p className='userLogs'>{userlog}</p>
+            </div>
+            </div>
 
-          {messages.map((msg) => {
-                return <p key={msg.id}>{msg.message}{msg.created}</p>
-              })}
 
-      </div> 
+            <textarea
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className='userInputs'
+            />
+           
+
+        </div> 
+      </div>
 
       : 
       //DISPLAY WHEN USER ENTERS SITE 
-      
-          <div className='start-container mt-32 flex flex-col items-center bg-blue-200 rounded-lg shadow-lg shadow-white'>
-
+          <div className='what'> {/* ".1px solid transparent border, dont know why not having this causes big gap on top of screen, deleting tailwind fixes it. idk ??" */}
+              
+          <div className='start-container mt-20 bg-blue-200 rounded-lg shadow-lg shadow-white mx-auto'>
             <h1 className='text-center flex items-center justify-center text-4xl w-full h-28 mt-4'>Chat.io 💬</h1>
 
               <div className="joinInputs flex flex-col w-full items-center justify-around h-full px-16">
@@ -213,8 +223,10 @@ function App() {
               <p id="login-error" className='text-red-900 -mt-7 '>{loginError}</p>
               
               </div>
-          </div>
+              </div>
+        </div>
     }
+    </div>
 
     </>
     
