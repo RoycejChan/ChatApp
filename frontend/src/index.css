@@ -35,16 +35,11 @@ body, html {
 }
 
 .sideBar {
-  background-color: red;
   display: flex;
   flex-direction: column;
   width: 25%;
-  height: 90%;
 }
 
-.main-msging-app {
-  display:flex;
-  flex-direction: row-reverse;
-  justify-content: center;
-  height: 90%;
+.msgs-container {
+  width: 75%;
 }

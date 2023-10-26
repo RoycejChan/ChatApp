@@ -121,11 +121,13 @@ function App() {
       setRoom(roomNumber)
       socket.emit("joinroom", roomNumber);
       setUser(true);
+      setLoginError("");
     }
   };
 
   const exitRoom = () => {
     socket.emit("exitRoom", ( {room, username}));
+    setUsername("");
   };
 
 
@@ -136,42 +138,39 @@ function App() {
     {userActive ? 
     <div className="what"> {/* ".1px solid transparent border, dont know why not having this causes big gap on top of screen, deleting tailwind fixes it. idk ??" */}
       <div className='chatroom-container bg-red-100 flex flex-col text-xl gap-2 border-4 my-12 mx-auto rounded-lg shadow-2xl shadow-blue-600'>
+        <div className="header flex">
         <h1 className='text-center flex items-center justify-center text-4xl w-full h-28 mt-4'>Chat.io 💬</h1>
-            
-        <div className="main-msging-app">
-            <ul id="msglist">
-              {messages.map((msg) => {
-                  return <li key={msg.id}>{msg.message}{msg.created}</li>
-                })}
-            </ul>
+        <button onClick={()=>exitRoom()} className='p-10'>✖️</button>
+        </div>
+       
+        
+        <div className="main-msging-app flex  w-full h-full">
+            <div className="sideBar h-full text-center bg-white border-r-2 border-zinc-00 pt-4 gap-6">
+                  <h1>Users in Room</h1>
+                  <ul className="currentUsers">
+                    <li>{username} (You)</li>
+                  </ul>
 
-            <div className="sideBar">
-              <button onClick={sendMessage}>Send Message</button>
-            
-              <input type="string"
-              onChange={(e) => setUsername(e.target.value)}
-              value={username}
-              />
-              
-                  <button onClick={()=>joinroom(1)}>
-                  Casual Chat room
-                    </button>
-                  <button onClick={()=>joinroom(2)}>In-Game Chat Room</button>
-                  <button onClick={()=>joinroom(3)}>AFK room</button>
-
-              <button onClick={()=>exitRoom()} >EXIT CHAT ROOM</button>
               <p className='userLogs'>{userlog}</p>
-
             </div>
-            </div>
-
-
-            <textarea
+          <ul id="msglist" className='msgs-container bg-white p-4'>
+                {messages.map((msg) => {
+                    return <li key={msg.id}>{msg.message}{msg.created}</li>
+                  })}
+          </ul>
+        </div>
+        <div className="flex">
+        <textarea
                 type="text"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className='userInputs'
+                className='userInputs p-2 w-full rounded-lg m-2'
             />
+        <button onClick={sendMessage} className='px-8 hover:-translate-y-4 hover:duration-150 active:-translate-y-8 focus:duration-75' >🚀</button>
+        </div>        
+
+
+       
            
 
         </div> 
