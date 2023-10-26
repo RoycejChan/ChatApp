@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import io from "socket.io-client";
+import PocketBase from 'pocketbase';
+const pb = new PocketBase('http://127.0.0.1:8090');
 const ENDPOINT = "http://localhost:3000";
 const pbURL = "http://127.0.0.1:8090"
 // Declare the socket globally
@@ -20,30 +22,35 @@ function App() {
 
   //FETCH MESSAGES FOR CHAT ROOM FROM POCKETBASE DB
   async function getMessages() {
-    const res = await fetch(`${pbURL}/api/collections/chatroom/records?page=1&perPage=30`);  
-    const data = await res.json();  
+    const res = await fetch(`${pbURL}/api/collections/${room}/records?page=1&perPage=30`);  
+    const data = await res.json();
     return data && data.items;
   }
 
 
   //
-  async function messageContainer() {
-    const messages = await getMessages();
-    console.log(messages);
-    setMessages(messages);
-  }
 
-  
+
+  const sendMessage = async () => {
+    const data = {
+      "username": username,
+      "message": message,
+      "room": room
+    };
+
+    const record = await pb.collection(`${room}`).create(data);
+    socket.emit('chatmsg', { message, username });
+  };
+
+
+
   useEffect(() => {
     // Initialize the socket connection
     socket = io(ENDPOINT);
-
-          
     //FUNCTIONS ONEFFECT
-
     socket.on('chatmsg', ({ message, username }) => {
       if (message  != "" ) {
-          messageContainer();
+          //APPEND TO MSG UL as LI
           const msglist = document.getElementById("msglist");
           const inputmsg = document.createElement('li');
           inputmsg.textContent = `${username}: ${message} `;
@@ -52,19 +59,8 @@ function App() {
         console.log("please enter a message")
       }
     });
-
     
-
-
-    socket.on('changeRoom', () => {
-      console.log("Changed UI to current room");
-      const msglist = document.getElementById("msglist");
-      msglist.innerHTML = "";
-      setMessage("");
-      setRoom("");
-    });
     socket.on('leaveChat', ({username}) => {
-      console.log("You have left the chat room app");
       let log = `${username} has left the room`;
       setuserLog(log);
       setMessage("");
@@ -77,16 +73,12 @@ function App() {
       socket.off("connect");
       socket.off('chatmsg');
       socket.off('leaveChat');
-      socket.off('changeRoom');
     };
   }, []);
 
     //END USE EFFECT 
 
 
-  const sendMessage = () => {
-    socket.emit('chatmsg', { message, username });
-  };
 
 
   const setRoomNumber = (roomNumber, roomname) => {
@@ -97,7 +89,6 @@ function App() {
     } else {
       setSelectedRoom(roomNumber);
       setRoom(roomNumber);
-      console.log(room);
       setRoomName(roomname);
     }
   }
@@ -105,7 +96,6 @@ function App() {
   const isButtonSelected = (roomNumber) => {
     return roomNumber === selectedRoom;
   };
-  
 
   const joinroom = (roomNumber) => {
     if (username == "") {
@@ -118,6 +108,11 @@ function App() {
       setLoginError("Choose a room to chat in")
       return;
    }else {
+      async function messageContainer() {
+        const messages = await getMessages();
+        setMessages(messages);
+      }
+      messageContainer();
       setRoom(roomNumber)
       socket.emit("joinroom", roomNumber);
       setUser(true);
@@ -152,7 +147,7 @@ function App() {
             {/* END CONTAINER HEADER */}
 
             {/* MAIN MIDDLE SECTION W/MESSAGES && USERS */}
-            <div className="main-msging-app flex  w-full h-full">
+            <div className="main-msging-app flex w-full h-full">
                 <div className="sideBar h-full text-center bg-white border-r-2 border-zinc-00 pt-4 gap-6">
                       <h1 className='border-b-2 border-zinc-300 py-2'>
                         {roomName} Room
@@ -167,9 +162,9 @@ function App() {
 
                 </div>
               <ul id="msglist" 
-                  className='msgs-container bg-white p-4'>
+                  className='msgs-container bg-white p-4 overflow-y-scroll'>
                   {messages.map((msg) => {
-                      return <li key={msg.id}>{msg.message}{msg.created}</li>
+                      return <li key={msg.id}>{msg.username}:{msg.message}</li>
                   })}
               </ul>
             {/* LOG OF USERS COMING IN AND OUT

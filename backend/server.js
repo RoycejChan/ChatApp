@@ -41,23 +41,11 @@ io.on("connection", (socket) => {
 
     //JOIN ROOM
     socket.on("joinroom", (room) => {
-
-
-        if (currentRoom == room) {
-            console.log("you are already in this room")
-            return;
-        }else if(currentRoom) {
-            //LEAVE CURRENT ROOM
-            socket.emit("changeRoom", (currentRoom));
-            socket.leave(currentRoom);
-            console.log(`${socket.id} left ${currentRoom}`);
-        } 
             //JOIN NEW ROOM
         socket.join(room);
         currentRoom = room;
         console.log(`${socket.id} joined ${room}`);
     });
-
 
     socket.on("exitRoom", ({username}) => {
         socket.leave(currentRoom);
@@ -71,9 +59,6 @@ function displaymsg(socket) {
     socket.on('chatmsg', ({ message,username }) => {
         // Get the room(s) the user is in
         const userRooms = Array.from(socket.rooms);
-        console.log(username);
-        console.log(`Received message from ${username}: ${message}`);
-
         // send the message to everyone in current room (including sender)
         socket.nsp.to(userRooms[1]).emit('chatmsg', { message,username });
     })
