@@ -10,8 +10,10 @@
 //INCLUDE USERNAME FOR USER TO JOIN CHAT
 //TIE USERNAME TO MESSAGE SENT
 //added useeffect to react on even listeners bc socket.io declared multiple socket connections and display li tags multiple times.
-
 //ADDED BUTTONS FOR ROOM NUMBERS INSTEAD OF MANUALLY TYPING.
 //CHANGE LEEAVE CHROOM TO LEAVE CHAT ROOM
 //ADDED POCKET BASE
 //ERROR <p> message if user doesnt enter login input correctly or doesnt select room 
+//ADDED CSS to main chat app container
+
+//MADE return jsx more readable and organized
