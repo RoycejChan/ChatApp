@@ -3,14 +3,11 @@ const app = express();
 const http = require("http");
 const { Server } = require('socket.io');
 const cors = require('cors');
-
 app.use(cors({
     origin: "http://localhost:5173", // Allow requests from the frontend
     methods: ["GET", "POST"]
 }));
-
 const server = http.createServer(app);
-
 const io = new Server(server, {
     cors: {
         origin: "http://localhost:5173", // Set the same origin for Socket.IO
@@ -21,16 +18,19 @@ const io = new Server(server, {
 
 //FIXME:ADDED user log when user leaves room it will show on everyone screen, like a feed, currently only shows on that persons feed not other, nvm it shows undefined has left room instead of username too
     //SHOW on dom for 5 seconds when user enters or leaves currentRoom
-//FIXME: ERROR <p> message if user doesnt enter login input
 
 
 // TODO:
-//UPDATE MESSAGES TO CURENT ROOM WHEN SWITCHING ROOMS
-//DELETE messages only if they were the sender
-//INCLUDE POCKET BASE FOR USER NAME AND MESSAGES ?
 //ADD CSS
 //organize, seperate functions and emits to seperate files
-//watch next js the basics for bocketpase
+
+//TODO:POCKET BASE RELATED
+//INCLUDE POCKET BASE FOR USER NAME AND MESSAGES ?
+////watch next js the basics for bocketpase
+//DELETE messages only if they were the sender
+//UPDATE MESSAGES TO CURENT ROOM WHEN SWITCHING ROOMS
+
+
 
 io.on("connection", (socket) => {
     console.log(`${socket.id} connected`);

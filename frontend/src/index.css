@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 html {
-  background-color: rgb(68, 68, 68);
+  background-color: rgb(37, 16, 133);
   display: flex;
   justify-content: center;
 }
@@ -11,7 +11,6 @@ html {
 .start-container {
   display: flex;
   flex-direction: column;
-  background-color: darkcyan;
-  width: 1000px;
-  height: 600px;
+  width: 800px;
+  height: 450px;
 }

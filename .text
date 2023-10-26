@@ -13,4 +13,5 @@
 
 //ADDED BUTTONS FOR ROOM NUMBERS INSTEAD OF MANUALLY TYPING.
 //CHANGE LEEAVE CHROOM TO LEAVE CHAT ROOM
-
+//ADDED POCKET BASE
+//ERROR <p> message if user doesnt enter login input correctly or doesnt select room 
