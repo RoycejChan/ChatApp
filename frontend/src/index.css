@@ -1,3 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 html {
   background-color: rgb(68, 68, 68);
+  display: flex;
+  justify-content: center;
+}
+
+.start-container {
+  display: flex;
+  flex-direction: column;
+  background-color: darkcyan;
+  width: 1000px;
+  height: 600px;
 }
