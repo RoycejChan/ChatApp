@@ -43,4 +43,15 @@ body, html {
 .msgs-container {
   width: 75%;
 }
+/* HIDES SCROLLBAR ON MESSAGS CONTAINER */
+::-webkit-scrollbar {
+  width: 0.5em;
+}
 
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+}

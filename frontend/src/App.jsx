@@ -126,9 +126,10 @@ function App() {
       }
       messageContainer();
       setRoom(roomNumber)
-      socket.emit("joinroom", roomNumber);
       setUser(true);
       setLoginError("");
+      socket.emit("joinroom", roomNumber);
+
     }
   };
 
@@ -189,7 +190,7 @@ function App() {
                   </li>
 
                 ))}
-                      {/* <p className='userLogs'>{userlog}LOGS</p> <error Do this */}
+                      <p className='userLogs'>{userlog}LOGS</p>
               </ul>
 
             </div>

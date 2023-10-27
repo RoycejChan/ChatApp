@@ -15,7 +15,7 @@ const io = new Server(server, {
     }
 });
 
-
+//FIXME: CANTT, MESSAGES WONT FLEX WRAP IDK WHY TRIED EVERYTTHING I COULD THINK OF
 //FIXME:ADDED user log when user leaves room it will show on everyone screen, like a feed, currently only shows on that persons feed not other, nvm it shows undefined has left room instead of username too
     //SHOW on dom for 5 seconds when user enters or leaves currentRoom
 
@@ -28,7 +28,6 @@ const io = new Server(server, {
 //user leave or join logs will b on center (emit.to room)
 //add users list to whoeveres in the room.
 //on sendmessage(), send socket it, but i need to get it first on join room function or page load.
-//HIDE MESSAGES SCROLL BAR
 
 io.on("connection", (socket) => {
     console.log(`${socket.id} connected`);
