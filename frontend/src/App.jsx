@@ -18,8 +18,7 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [loginError, setLoginError] =useState("");
   const [usersInRoom, setUsersInRoom] = useState([]);
-
-
+  const [userId, setUserId] = useState(0);
 
   //FETCH MESSAGES FOR CHAT ROOM FROM POCKETBASE DB
   async function getMessages() {
@@ -31,15 +30,16 @@ function App() {
 
 
 //SENDS MESSAGE TO DATABASE, calls chatmsg to display from database
-  const sendMessage = async (socketID) => {
+  const sendMessage = async () => {
     const data = {
       "username": username,
       "message": message,
-      "room": room
+      "room": room,
+      "socketID": userId
     };
 
     const record = await pb.collection(`${room}`).create(data);
-    socket.emit('chatmsg', { message, username, room });
+    socket.emit('chatmsg', { message, username, room, userId });
   };
 
 
@@ -51,18 +51,17 @@ function App() {
 
 
 //DISPLAY MESSAGE FROM DB
-    socket.on('chatmsg', ({ message, username, room, socketID }) => {
+    socket.on('chatmsg', ({ message, username, room, socketID}) => {
 
       if (message  != "" ) {
               //send new message to UI and add to messages state
           const newMsg = {
             "username": username,
             "message": message,
-            "room": room
+            "room": room,
+            "socketID": socketID
           }
-
           setMessages((prevMessages) => [...prevMessages, newMsg]);
-     
         } else {
         console.log("please enter a message")
       }
@@ -74,21 +73,36 @@ function App() {
       setMessage("");
       setRoom("");
       setUser(false);
+      console.log(usersInRoom);
     });
 
+    socket.on("socketID", (socketID) => {
+      setUserId(socketID);
+    });
+  
+
+    socket.on("joinLog", ({username, users}) => {
+      console.log(`${username} has entered`);
+      setUsersInRoom(users);
+    })
+    socket.on("exitLog", ({username}) => {
+      console.log(`${username} has left`);
+      console.log(usersInRoom);
+    })
     // Clean up by removing event listeners when the component unmounts
     return () => {
-      socket.off("connect");
+      socket.off("socketID");
       socket.off('chatmsg');
       socket.off('leaveChat');
     };
 
   }, []);
-
     //END USE EFFECT 
 
-  
-
+    useEffect(() => {
+      console.log(usersInRoom);
+    }, [usersInRoom]);
+    
 
   const setRoomNumber = (roomNumber, roomname) => {
     if (roomNumber === selectedRoom) {
@@ -128,14 +142,18 @@ function App() {
       setRoom(roomNumber)
       setUser(true);
       setLoginError("");
-      socket.emit("joinroom", roomNumber);
+      socket.emit("joinroom", ({username, roomNumber ,usersInRoom}));
 
     }
   };
 
   const exitRoom = () => {
-    socket.emit("exitRoom", ( {room, username}));
+    socket.emit("exitRoom", ( {username, room} ));
     setUsername("");
+    setRoom(0)
+    setUser(false);
+    setSelectedRoom(0)
+    console.log(userId);
   };
 
 
@@ -174,6 +192,11 @@ function App() {
                     {username} 
                     <span className="text-green-400">(YOU)</span>
                   </li>
+                  {/* {usersInRoom.map((user) => {
+                    <li className='flex flex-wrap justify-center'>
+                      {user} 
+                    </li>
+                  })} */}
                 </ul>
               </div>
               {/* END SIDEBAR */}

@@ -3,10 +3,13 @@ const app = express();
 const http = require("http");
 const { Server } = require('socket.io');
 const cors = require('cors');
+// Initialize the Express app and configure CORS
 app.use(cors({
     origin: "http://localhost:5173", // Allow requests from the frontend
     methods: ["GET", "POST"]
 }));
+
+// Create an HTTP server and Socket.IO instance
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
@@ -14,54 +17,60 @@ const io = new Server(server, {
         methods: ["GET", "POST"]
     }
 });
-
-//FIXME: CANTT, MESSAGES WONT FLEX WRAP IDK WHY TRIED EVERYTTHING I COULD THINK OF
-//FIXME:ADDED user log when user leaves room it will show on everyone screen, like a feed, currently only shows on that persons feed not other, nvm it shows undefined has left room instead of username too
-    //SHOW on dom for 5 seconds when user enters or leaves currentRoom
-
-// TODO:
-//organize, seperate functions and emits to seperate files
-
-//TODO:POCKET BASE RELATED
-//DONT DELETE, if user has same id as message, message will b on right like phone
-//if from someone else displaay on left side,
-//user leave or join logs will b on center (emit.to room)
-//add users list to whoeveres in the room.
-//on sendmessage(), send socket it, but i need to get it first on join room function or page load.
-
+// Handle new client connections
 io.on("connection", (socket) => {
     console.log(`${socket.id} connected`);
+
+    let currentRoom = null; // Initialize user's current room
+
+    const socketID = socket.id;
+
+    // Function to handle displaying chat messages
     displaymsg(socket);
+
     
-    let currentRoom = null; //INITIAL STATE OF ROOM USER IS IN
+    let rooms = []
 
+    // Handle joining a room and return user's unique socketID
+    socket.on("joinroom", ({ username, room}) => {
 
-    //JOIN ROOM
-    socket.on("joinroom", (room) => {
         socket.join(room);
         currentRoom = room;
+        io.to(room).emit("joinLog", ({ username }));
+
+        const newUser = {
+            "username": username,
+            "room": room,
+            "socketID": socketID
+        }
+        rooms.push(newUser);
+        // Send the user's socketID to them
+        socket.emit('socketID', socketID);
     });
-    //EXIT ROOM
-    socket.on("exitRoom", ({username}) => {
+
+    // Handle exiting a room
+    socket.on("exitRoom", ({ username, room }) => {
+        // Emit a message to inform everyone in the room about the user's exit
+        io.to(currentRoom).emit("exitLog", { username });
+        console.log(rooms);
+        // Leave the room
         socket.leave(currentRoom);
-        socket.emit("leaveChat", username);
         currentRoom = null;
     });
-
 });
 
+// Function to display chat messages
 function displaymsg(socket) {
-    socket.on('chatmsg', ({ message,username }) => {
+    socket.on('chatmsg', ({ message, username, room, userID }) => {
         // Get the room(s) the user is in
         const userRooms = Array.from(socket.rooms);
-        // send the message to everyone in current room (including sender)
-        const socketID = socket.id;
-        socket.nsp.to(userRooms[1]).emit('chatmsg', {message,username, socketID});
-    })
 
+        // Send the message to everyone in the current room (including sender)
+        socket.nsp.to(userRooms[1]).emit('chatmsg', { message, username, room, userID });
+    });
 }
 
-
+// Start the server on port 3000
 server.listen(3000, () => {
-    console.log("Server listening port 3000");
+    console.log("Server listening on port 3000");
 });
