@@ -37,9 +37,10 @@ body, html {
 .sideBar {
   display: flex;
   flex-direction: column;
-  width: 25%;
+  width: 20%;
 }
 
 .msgs-container {
   width: 75%;
 }
+

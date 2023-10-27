@@ -17,21 +17,21 @@ function App() {
   const [userlog, setuserLog] =useState("");
   const [messages, setMessages] = useState([]);
   const [loginError, setLoginError] =useState("");
+  const [usersInRoom, setUsersInRoom] = useState([]);
 
 
 
   //FETCH MESSAGES FOR CHAT ROOM FROM POCKETBASE DB
   async function getMessages() {
-    const res = await fetch(`${pbURL}/api/collections/${room}/records?page=1&perPage=30`);  
-    const data = await res.json();
+    const msgs = await fetch(`${pbURL}/api/collections/${room}/records?page=1&perPage=30`);  
+    const data = await msgs.json();
     return data && data.items;
   }
 
 
-  //
 
-
-  const sendMessage = async () => {
+//SENDS MESSAGE TO DATABASE, calls chatmsg to display from database
+  const sendMessage = async (socketID) => {
     const data = {
       "username": username,
       "message": message,
@@ -39,23 +39,31 @@ function App() {
     };
 
     const record = await pb.collection(`${room}`).create(data);
-    socket.emit('chatmsg', { message, username });
+    socket.emit('chatmsg', { message, username, room });
   };
 
 
 
   useEffect(() => {
+    
     // Initialize the socket connection
     socket = io(ENDPOINT);
-    //FUNCTIONS ONEFFECT
-    socket.on('chatmsg', ({ message, username }) => {
+
+
+//DISPLAY MESSAGE FROM DB
+    socket.on('chatmsg', ({ message, username, room, socketID }) => {
+
       if (message  != "" ) {
-          //APPEND TO MSG UL as LI
-          const msglist = document.getElementById("msglist");
-          const inputmsg = document.createElement('li');
-          inputmsg.textContent = `${username}: ${message} `;
-          msglist.appendChild(inputmsg);
-      } else {
+              //send new message to UI and add to messages state
+          const newMsg = {
+            "username": username,
+            "message": message,
+            "room": room
+          }
+
+          setMessages((prevMessages) => [...prevMessages, newMsg]);
+     
+        } else {
         console.log("please enter a message")
       }
     });
@@ -74,11 +82,12 @@ function App() {
       socket.off('chatmsg');
       socket.off('leaveChat');
     };
+
   }, []);
 
     //END USE EFFECT 
 
-
+  
 
 
   const setRoomNumber = (roomNumber, roomname) => {
@@ -99,12 +108,15 @@ function App() {
 
   const joinroom = (roomNumber) => {
     if (username == "") {
-      setLoginError("Enter a username")
-      return;
+        setLoginError("Enter a username")
+        return;
     } else if(username.length < 3 ) {    
-      setLoginError("Username must be 3 or more characters")
-      return;   
-  }else if ( room === 0 ) {
+        setLoginError("Username must be 3 or more characters")
+        return;
+     } else if(username.length > 15) {
+        setLoginError("Username exceeds 15 character max")
+        return;      
+      }else if ( room === 0 ) {
       setLoginError("Choose a room to chat in")
       return;
    }else {
@@ -147,28 +159,38 @@ function App() {
             {/* END CONTAINER HEADER */}
 
             {/* MAIN MIDDLE SECTION W/MESSAGES && USERS */}
-            <div className="main-msging-app flex w-full h-full">
-                <div className="sideBar h-full text-center bg-white border-r-2 border-zinc-00 pt-4 gap-6">
-                      <h1 className='border-b-2 border-zinc-300 py-2'>
-                        {roomName} Room
-                        <br />
-                        Users
-                      </h1>
+            <div className="main-msging-app flex w-full h-full overflow-y-scroll bg-white ">
 
-                    {/* DISPLAY USERES IN CURRENT ROOM */}
-                      <ul className="currentUsers">
-                        <li>{username} <span className='text-green-400'>(YOU)</span></li>
-                      </ul>
+              {/* SIDEBAR */}
+              <div className="sideBar h-full text-center bg-white border-r-2 border-zinc-00 pt-4 gap-6 flex-shrink-0">
+                <h1 className="border-b-2 border-zinc-300 py-2">
+                  {roomName} Room
+                  <br />
+                  Users
+                </h1>
+                <ul className="currentUsers flex flex-wrap justify-center p-2">
+                  <li className='flex flex-wrap justify-center'>
+                    {username} 
+                    <span className="text-green-400">(YOU)</span>
+                  </li>
+                </ul>
+              </div>
+              {/* END SIDEBAR */}
 
-                </div>
-              <ul id="msglist" 
-                  className='msgs-container bg-white p-4 overflow-y-scroll'>
-                  {messages.map((msg) => {
-                      return <li key={msg.id}>{msg.username}:{msg.message}</li>
-                  })}
+              {/* MESSAGES CONTAINER */}
+
+              <ul className="msgs-container p-4 flex flex-col gap-4 flex-grow overflow-y-auto">
+                {messages.map((msg) => (
+                  <li key={msg.id} className="message">
+                    {msg.username}
+                    <span className="bg-blue-500 p-3 rounded-full h-20 w-3/5 flex items-center flex-wrap pl-8" >
+                      {msg.message}
+                    </span>
+                  </li>
+
+                ))}
+                      {/* <p className='userLogs'>{userlog}LOGS</p> <error Do this */}
               </ul>
-            {/* LOG OF USERS COMING IN AND OUT
-            <p className='userLogs'>{userlog}</p> */}
 
             </div>
             {/* END MAIN MIDDLE SECTION W/MESSAGES && USERS */}
@@ -183,6 +205,7 @@ function App() {
                         placeholder='Send a message ..'
                 />
                 <button 
+                  id="joinRoom"
                   onClick={sendMessage} 
                   className='px-8 hover:-translate-y-4 hover:duration-150 active:-translate-y-8 focus:duration-75'>
                   🚀
