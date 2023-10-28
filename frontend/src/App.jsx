@@ -5,7 +5,7 @@ const pb = new PocketBase('http://127.0.0.1:8090');
 const ENDPOINT = "http://localhost:3000";
 const pbURL = "http://127.0.0.1:8090"
 // Declare the socket globally
-let socket = null;
+const socket = io(ENDPOINT);
 
 function App() {
   const [message, setMessage] = useState('');
@@ -14,7 +14,7 @@ function App() {
   const [room, setRoom] = useState(0);
   const [userActive, setUser] = useState(false);
   const [username, setUsername] = useState("");
-  const [userlog, setuserLog] =useState("");
+  const [userlog, setuserLog] =useState([]);
   const [messages, setMessages] = useState([]);
   const [loginError, setLoginError] =useState("");
   const [usersInRoom, setUsersInRoom] = useState([]);
@@ -26,9 +26,6 @@ function App() {
     const data = await msgs.json();
     return data && data.items;
   }
-
-
-
 //SENDS MESSAGE TO DATABASE, calls chatmsg to display from database
   const sendMessage = async () => {
     const data = {
@@ -41,15 +38,7 @@ function App() {
     const record = await pb.collection(`${room}`).create(data);
     socket.emit('chatmsg', { message, username, room, userId });
   };
-
-
-
   useEffect(() => {
-    
-    // Initialize the socket connection
-    socket = io(ENDPOINT);
-
-
 //DISPLAY MESSAGE FROM DB
     socket.on('chatmsg', ({ message, username, room, socketID}) => {
 
@@ -62,64 +51,45 @@ function App() {
             "socketID": socketID
           }
           setMessages((prevMessages) => [...prevMessages, newMsg]);
+          console.log(usersInRoom);
         } else {
         console.log("please enter a message")
       }
     });
+
+  socket.on("joinLog", (user) => {
     
-    socket.on('leaveChat', ({username}) => {
-      let log = `${username} has left the room`;
-      setuserLog(log);
-      setMessage("");
-      setRoom("");
-      setUser(false);
-      console.log(usersInRoom);
-    });
+    console.log(`${user.username} has entered room in ${user.room}: FROM SERVER`);
+    const message = `${user.username} joined the room`;
+    setuserLog((prevMessages) => [...prevMessages, message]);
+    setUsersInRoom((prevUsers) => [...prevUsers, user.username]);
+    setUserId(user.socketID)
+  });
 
-    socket.on("socketID", (socketID) => {
-      setUserId(socketID);
-    });
-  
-
-    socket.on("joinLog", ({username, users}) => {
-      console.log(`${username} has entered`);
-      setUsersInRoom(users);
-    })
-    socket.on("exitLog", ({username}) => {
-      console.log(`${username} has left`);
-      console.log(usersInRoom);
+    socket.on("exitLog", (userLeft) => {
+      console.log(`${userLeft.username} left the room`);
+      const message = `${userLeft.username} joined the room`;
+      setuserLog((prevMessages) => [...prevMessages, message]);
+      setUsersInRoom((prevUsers) => prevUsers.filter(username => username !== userLeft.username));
     })
     // Clean up by removing event listeners when the component unmounts
     return () => {
-      socket.off("socketID");
       socket.off('chatmsg');
-      socket.off('leaveChat');
-    };
-
+      socket.off('joinLog');
+      socket.off('exitLog');
+  };
   }, []);
     //END USE EFFECT 
+  const exitRoom = () => {
+    socket.emit("exitRoom", {username, room});
 
-    useEffect(() => {
-      console.log(usersInRoom);
-    }, [usersInRoom]);
-    
-
-  const setRoomNumber = (roomNumber, roomname) => {
-    if (roomNumber === selectedRoom) {
-            // Deselect the button if it's already selected
-      setSelectedRoom(0);
-      setRoom(0);
-    } else {
-      setSelectedRoom(roomNumber);
-      setRoom(roomNumber);
-      setRoomName(roomname);
-    }
-  }
-
-  const isButtonSelected = (roomNumber) => {
-    return roomNumber === selectedRoom;
+    setMessage("");
+    setUsername("");
+    setRoom(0)
+    setUser(false);
+    setSelectedRoom(0)
+    setUsersInRoom([]);
   };
-
   const joinroom = (roomNumber) => {
     if (username == "") {
         setLoginError("Enter a username")
@@ -142,20 +112,26 @@ function App() {
       setRoom(roomNumber)
       setUser(true);
       setLoginError("");
-      socket.emit("joinroom", ({username, roomNumber ,usersInRoom}));
+
+
+      socket.emit("createUser", {username, room:roomNumber});
 
     }
   };
-
-  const exitRoom = () => {
-    socket.emit("exitRoom", ( {username, room} ));
-    setUsername("");
-    setRoom(0)
-    setUser(false);
-    setSelectedRoom(0)
-    console.log(userId);
+  const setRoomNumber = (roomNumber, roomname) => {
+    if (roomNumber === selectedRoom) {
+            // Deselect the button if it's already selected
+      setSelectedRoom(0);
+      setRoom(0);
+    } else {
+      setSelectedRoom(roomNumber);
+      setRoom(roomNumber);
+      setRoomName(roomname);
+    }
+  }
+  const isButtonSelected = (roomNumber) => {
+    return roomNumber === selectedRoom;
   };
-
 
   return (
     <>
@@ -187,16 +163,16 @@ function App() {
                   <br />
                   Users
                 </h1>
-                <ul className="currentUsers flex flex-wrap justify-center p-2">
+                <ul className="currentUsers flex flex-wrap flex-col justify-center p-2 gap-6">
                   <li className='flex flex-wrap justify-center'>
                     {username} 
                     <span className="text-green-400">(YOU)</span>
                   </li>
-                  {/* {usersInRoom.map((user) => {
+                  {usersInRoom.map((user) => (
                     <li className='flex flex-wrap justify-center'>
                       {user} 
                     </li>
-                  })} */}
+                  ))}
                 </ul>
               </div>
               {/* END SIDEBAR */}
@@ -206,14 +182,19 @@ function App() {
               <ul className="msgs-container p-4 flex flex-col gap-4 flex-grow overflow-y-auto">
                 {messages.map((msg) => (
                   <li key={msg.id} className="message">
+
                     {msg.username}
                     <span className="bg-blue-500 p-3 rounded-full h-20 w-3/5 flex items-center flex-wrap pl-8" >
                       {msg.message}
                     </span>
                   </li>
-
                 ))}
-                      <p className='userLogs'>{userlog}LOGS</p>
+
+                  {userlog.map((message, index) => (
+                    <li key={index} className="exit-message">
+                      {message}
+                    </li>
+                  ))}
               </ul>
 
             </div>
