@@ -58,11 +58,11 @@ function App() {
     });
 
   socket.on("joinLog", (user) => {
-    
+
     console.log(`${user.username} has entered room in ${user.room}: FROM SERVER`);
     const message = `${user.username} joined the room`;
     setuserLog((prevMessages) => [...prevMessages, message]);
-    setUsersInRoom((prevUsers) => [...prevUsers, user.username]);
+    setUsersInRoom(user.roomSockets);
     setUserId(user.socketID)
   });
 
@@ -70,7 +70,7 @@ function App() {
       console.log(`${userLeft.username} left the room`);
       const message = `${userLeft.username} joined the room`;
       setuserLog((prevMessages) => [...prevMessages, message]);
-      setUsersInRoom((prevUsers) => prevUsers.filter(username => username !== userLeft.username));
+      setUsersInRoom(userLeft.roomSockets);
     })
     // Clean up by removing event listeners when the component unmounts
     return () => {
@@ -81,7 +81,7 @@ function App() {
   }, []);
     //END USE EFFECT 
   const exitRoom = () => {
-    socket.emit("exitRoom", {username, room});
+    socket.emit("exitRoom", {username, room, userId});
 
     setMessage("");
     setUsername("");

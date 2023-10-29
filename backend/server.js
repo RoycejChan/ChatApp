@@ -3,13 +3,11 @@ const app = express();
 const http = require("http");
 const { Server } = require('socket.io');
 const cors = require('cors');
-// Initialize the Express app and configure CORS
 app.use(cors({
     origin: "http://localhost:5173", // Allow requests from the frontend
     methods: ["GET", "POST"]
 }));
 
-// Create an HTTP server and Socket.IO instance
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
@@ -19,7 +17,6 @@ const io = new Server(server, {
 });
 
 let socketID = null;
-// Handle new client connections
 io.on("connection", (socket) => {
     console.log(`${socket.id} connected`);
     socketID = socket.id;
@@ -28,27 +25,38 @@ io.on("connection", (socket) => {
 
     
 
-// On the server side
-socket.on("createUser", ({ username, room }) => {
-    const user = { 
-        username: username, 
-        socketID: socket.id,
-        room: room,
-     };
-    socket.join(room);
-
-    // Emit an update to all users in the room
-    io.to(room).emit("joinLog", user);
-});
-
+    socket.on("createUser", ({ username, room }) => {
+        // First, join the user to the room
+        socket.join(room);
+    
+        // Get the roomSockets
+        const roomSockets = Array.from(io.sockets.adapter.rooms.get(room) || new Set());
+    
+        // Create the user object including roomSockets
+        const user = { 
+            username: username, 
+            socketID: socket.id,
+            room: room,
+            roomSockets: roomSockets,
+        };
+        console.log(user);
+        // Emit an update to all users in the room
+        io.to(room).emit("joinLog", user);
+    });
 // Handle exiting a room
-socket.on("exitRoom", ({username, room}) => {
+socket.on("exitRoom", ({username, room, socketId}) => {
+    socket.leave(room);
+
+    const roomSockets = Array.from(io.sockets.adapter.rooms.get(room) || new Set());
+
       const userLeft = {
         username: username,
         room: room,
+        socketId: socketId,
+        roomSockets: roomSockets
     };
-    io.to(room).emit("exitLog", userLeft); // Emit to the entire room
-    socket.leave(room);
+    
+    io.to(room).emit("exitLog", userLeft); 
 
 });
 
