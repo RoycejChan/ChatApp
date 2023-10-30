@@ -31,7 +31,6 @@ io.on("connection", (socket) => {
     
         // Get the roomSockets
         const roomSockets = Array.from(io.sockets.adapter.rooms.get(room) || new Set());
-    
         // Create the user object including roomSockets
         const user = { 
             username: username, 
@@ -43,23 +42,22 @@ io.on("connection", (socket) => {
         // Emit an update to all users in the room
         io.to(room).emit("joinLog", user);
     });
-// Handle exiting a room
-socket.on("exitRoom", ({username, room, socketId}) => {
+
+
+    socket.on("exitRoom", ({username, room, socketId}) => {
     socket.leave(room);
 
     const roomSockets = Array.from(io.sockets.adapter.rooms.get(room) || new Set());
-
       const userLeft = {
         username: username,
         room: room,
         socketId: socketId,
         roomSockets: roomSockets
     };
-    
+    console.log(roomSockets)
     io.to(room).emit("exitLog", userLeft); 
 
 });
-
 
 
 

@@ -36,6 +36,7 @@ function App() {
     };
 
     const record = await pb.collection(`${room}`).create(data);
+    setMessage("");
     socket.emit('chatmsg', { message, username, room, userId });
   };
   useEffect(() => {
@@ -51,26 +52,36 @@ function App() {
             "socketID": socketID
           }
           setMessages((prevMessages) => [...prevMessages, newMsg]);
-          console.log(usersInRoom);
         } else {
         console.log("please enter a message")
       }
     });
 
   socket.on("joinLog", (user) => {
+    console.log(usersInRoom)
 
     console.log(`${user.username} has entered room in ${user.room}: FROM SERVER`);
     const message = `${user.username} joined the room`;
     setuserLog((prevMessages) => [...prevMessages, message]);
-    setUsersInRoom(user.roomSockets);
-    setUserId(user.socketID)
+
+    const newUsername = user.username;
+    setUsersInRoom((prev) => [...prev, newUsername]);
+    const newLog= {
+      "username": "",
+      "message": message,
+      "room": "",
+      "socketID": "server"
+    }
+    setMessages((prev) => [...prev, newLog]);
+
+
+    
   });
 
     socket.on("exitLog", (userLeft) => {
       console.log(`${userLeft.username} left the room`);
-      const message = `${userLeft.username} joined the room`;
+      const message = `${userLeft.username} left the room`;
       setuserLog((prevMessages) => [...prevMessages, message]);
-      setUsersInRoom(userLeft.roomSockets);
     })
     // Clean up by removing event listeners when the component unmounts
     return () => {
@@ -81,14 +92,16 @@ function App() {
   }, []);
     //END USE EFFECT 
   const exitRoom = () => {
-    socket.emit("exitRoom", {username, room, userId});
-
+    console.log('exiting');
     setMessage("");
     setUsername("");
-    setRoom(0)
+    setRoom(0);
+    setuserLog([])
     setUser(false);
     setSelectedRoom(0)
     setUsersInRoom([]);
+    socket.emit("exitRoom", {username, room});
+
   };
   const joinroom = (roomNumber) => {
     if (username == "") {
@@ -109,7 +122,7 @@ function App() {
         setMessages(messages);
       }
       messageContainer();
-      setRoom(roomNumber)
+      setRoom(roomNumber);
       setUser(true);
       setLoginError("");
 
@@ -168,9 +181,9 @@ function App() {
                     {username} 
                     <span className="text-green-400">(YOU)</span>
                   </li>
-                  {usersInRoom.map((user) => (
+                  {usersInRoom.map((username) => (
                     <li className='flex flex-wrap justify-center'>
-                      {user} 
+                      {username} 
                     </li>
                   ))}
                 </ul>
@@ -180,21 +193,20 @@ function App() {
               {/* MESSAGES CONTAINER */}
 
               <ul className="msgs-container p-4 flex flex-col gap-4 flex-grow overflow-y-auto">
-                {messages.map((msg) => (
-                  <li key={msg.id} className="message">
+              {messages.map((msg) => (
+              <li
+                key={msg.id}
+                className={`message ${msg.username === username ? 'self-user' : ''}`}
+              >
+              {msg.username} 
+                <span className={`bg-blue-500 p-3 rounded-full h-20 w-3/5 flex items-center flex-wrap pl-8 message ${msg.username === username ? 'self-message' : ''} ${msg.socketID === 'server' ? 'server-log' : ''}`}>
+                  <p className={`${msg.socketID === 'server' ? 'server-log' : ''}`}>
+                  {msg.message}
+                  </p>
+                </span>
+              </li>
+            ))}
 
-                    {msg.username}
-                    <span className="bg-blue-500 p-3 rounded-full h-20 w-3/5 flex items-center flex-wrap pl-8" >
-                      {msg.message}
-                    </span>
-                  </li>
-                ))}
-
-                  {userlog.map((message, index) => (
-                    <li key={index} className="exit-message">
-                      {message}
-                    </li>
-                  ))}
               </ul>
 
             </div>

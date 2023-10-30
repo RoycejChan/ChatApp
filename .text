@@ -1,4 +1,5 @@
 //10/25//2023
+
 //DONE TODOS
 // -- HIDE MESSAGEINPUT MAKE USER NOT BE ABLE TO TYPE A MESSAGE UNTIL A ROOM IS ENTERED. 
 // --WHEN USER ENTERES ANOTHER ROOM, LEAVE BUTTON WILL BE TIED TO CURRENT ROOM AND CLICKING IT WILL LEAVE CURRENT ROOM WITHOUT HAVINGTO INPUT ROOM NUMBER
@@ -12,8 +13,40 @@
 //added useeffect to react on even listeners bc socket.io declared multiple socket connections and display li tags multiple times.
 //ADDED BUTTONS FOR ROOM NUMBERS INSTEAD OF MANUALLY TYPING.
 //CHANGE LEEAVE CHROOM TO LEAVE CHAT ROOM
+
+//10/26/2023
 //ADDED POCKET BASE
 //ERROR <p> message if user doesnt enter login input correctly or doesnt select room 
 //ADDED CSS to main chat app container
-
 //MADE return jsx more readable and organized
+//APP NOW FETCHES MESSAGES FROM POCKETBASE AND DISPLAYS THEM ON JOIN.
+//USER MESSAGES ARE SENT TO DATABASE THEN SENT TO UI. 
+//FINISHED CSS 
+//UPDATE MESSAGES TO CURENT ROOM WHEN SWITCHING ROOMS
+//DONE FIXME: MESSAGES OVERFLOW to container
+//FIXME: CANTT, MESSAGES WONT FLEX WRAP IDK WHY TRIED EVERYTTHING I COULD THINK OF
+//HIDE MESSAGES OVERFLOW SCROLL BAR 
+
+//FIXME: CANTT, MESSAGES WONT FLEX WRAP IDK WHY TRIED EVERYTTHING I COULD THINK OF
+
+10/27/2023
+//GETS SOCKET ID OF USER UPON ROOM JOIn
+//FIXME:ADDED user log when user leaves room it will show on everyone screen, like a feed, currently only shows on that persons feed not other, nvm it shows undefined has left room instead of username too
+
+
+10/28/2023
+//add users to users list to whoeveres in the room, updates when a user leaves.
+// found out how to get all sockets in a certain room, FIXME: ASSOCIATE USERNAME WITH SOCKET, currently only shows id.
+
+
+10/29
+// DISPLAY MESSAGES CORRECTLY (if user, display on right, default left, if log, display on middle)
+
+
+// DONE: Log should not be a list, but be added onto messages list. 
+// ADDED LOG ONTO MESSAGES LIST INSTEAD OF IT BEING ITS OWN LIST
+//  TODO: ADD EXIT LOG TOO NOW
+// TODO:
+//organize, seperate functions and emits to seperate files
+//upload,
+//responsive

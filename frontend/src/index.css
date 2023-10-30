@@ -41,7 +41,7 @@ body, html {
 }
 
 .msgs-container {
-  width: 75%;
+  width: 100%;
 }
 /* HIDES SCROLLBAR ON MESSAGS CONTAINER */
 ::-webkit-scrollbar {
@@ -54,4 +54,28 @@ body, html {
 
 ::-webkit-scrollbar-thumb {
   background: transparent;
+}
+
+.self-message {
+  background-color: limegreen;
+  color: black;
+  text-align: right;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.self-message p {
+  margin-right: 1rem;
+}
+
+
+.self-user {
+  text-align: right;
+}
+
+.server-log {
+  background-color: transparent;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
 }
