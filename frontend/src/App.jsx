@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import io from "socket.io-client";
 import PocketBase from 'pocketbase';
-const pb = new PocketBase('http://127.0.0.1:8090');
-const ENDPOINT = "http://localhost:3000";
-const pbURL = "http://127.0.0.1:8090"
+const pb = new PocketBase('https://roycechatapp.pockethost.io');
+const ENDPOINT = "https://roycechatappioapi.onrender.com/";
+const pbURL = "https://roycechatapp.pockethost.io";
 // Declare the socket globally
 const socket = io(ENDPOINT);
 
