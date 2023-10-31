@@ -41,12 +41,17 @@
 
 10/29
 // DISPLAY MESSAGES CORRECTLY (if user, display on right, default left, if log, display on middle)
-
-
 // DONE: Log should not be a list, but be added onto messages list. 
 // ADDED LOG ONTO MESSAGES LIST INSTEAD OF IT BEING ITS OWN LIST
-//  TODO: ADD EXIT LOG TOO NOW
-// TODO:
+
+
+10/30
+// ADDED EXIT LOG TOO NOW
+//added auto scroll to bottom of most recent messages
+//makeresponsive
+// add "username" + "(1)" and so on for dup usernames,
+
+
+TODOS
 //organize, seperate functions and emits to seperate files
-//upload,
-//responsive
+//deploy

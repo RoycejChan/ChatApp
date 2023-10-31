@@ -15,56 +15,44 @@ const io = new Server(server, {
         methods: ["GET", "POST"]
     }
 });
-
 let socketID = null;
+
 io.on("connection", (socket) => {
-    console.log(`${socket.id} connected`);
-    socketID = socket.id;
-    // Function to handle displaying chat messages
-    displaymsg(socket);
+        socketID = socket.id;
 
-    
+        // Function to handle displaying chat messages
+        displaymsg(socket);
 
-    socket.on("createUser", ({ username, room }) => {
-        // First, join the user to the room
-        socket.join(room);
-    
-        // Get the roomSockets
-        const roomSockets = Array.from(io.sockets.adapter.rooms.get(room) || new Set());
-        // Create the user object including roomSockets
-        const user = { 
-            username: username, 
-            socketID: socket.id,
-            room: room,
-            roomSockets: roomSockets,
-        };
-        console.log(user);
-        // Emit an update to all users in the room
-        io.to(room).emit("joinLog", user);
+        
+
+        socket.on("createUser", ({ username, room }) => {
+            socket.join(room);
+        
+            // Get the roomSockets (users in room)
+            const roomSockets = Array.from(io.sockets.adapter.rooms.get(room) || new Set());
+            // Create the user object including roomSockets
+            const user = { 
+                username: username, 
+                socketID: socket.id,
+                room: room,
+                roomSockets: roomSockets,
+            };
+            // Emit an update to all users in the room
+            io.to(room).emit("joinLog", user);
+        });
+
+
+        socket.on("exitRoom", ({username, room}) => {
+        socket.leave(room);
+        const userLeft = username;
+        //send useres in room the user who left
+        io.to(room).emit("exitLog", userLeft); 
     });
-
-
-    socket.on("exitRoom", ({username, room, socketId}) => {
-    socket.leave(room);
-
-    const roomSockets = Array.from(io.sockets.adapter.rooms.get(room) || new Set());
-      const userLeft = {
-        username: username,
-        room: room,
-        socketId: socketId,
-        roomSockets: roomSockets
-    };
-    console.log(roomSockets)
-    io.to(room).emit("exitLog", userLeft); 
-
-});
-
-
 
 });
 
 // Function to display chat messages
-function displaymsg(socket) {
+const displaymsg = ( socket ) => {
     socket.on('chatmsg', ({ message, username, room, userID }) => {
         // Get the room(s) the user is in
         const userRooms = Array.from(socket.rooms);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import io from "socket.io-client";
 import PocketBase from 'pocketbase';
 const pb = new PocketBase('http://127.0.0.1:8090');
@@ -19,6 +19,7 @@ function App() {
   const [loginError, setLoginError] =useState("");
   const [usersInRoom, setUsersInRoom] = useState([]);
   const [userId, setUserId] = useState(0);
+  const messageContainerRef = useRef(null);
 
   //FETCH MESSAGES FOR CHAT ROOM FROM POCKETBASE DB
   async function getMessages() {
@@ -53,36 +54,45 @@ function App() {
           }
           setMessages((prevMessages) => [...prevMessages, newMsg]);
         } else {
-        console.log("please enter a message")
-      }
+          alert("please enter a message")
+        }
     });
 
-  socket.on("joinLog", (user) => {
-    console.log(usersInRoom)
-
-    console.log(`${user.username} has entered room in ${user.room}: FROM SERVER`);
-    const message = `${user.username} joined the room`;
-    setuserLog((prevMessages) => [...prevMessages, message]);
-
-    const newUsername = user.username;
-    setUsersInRoom((prev) => [...prev, newUsername]);
-    const newLog= {
-      "username": "",
-      "message": message,
-      "room": "",
-      "socketID": "server"
-    }
-    setMessages((prev) => [...prev, newLog]);
-
-
+    socket.on("joinLog", (user) => {
+      const newUsername = user.username;
     
-  });
+      // Check for duplicate usernames in the room
+      let modifiedUsername = newUsername;
+      let count = 1;
+      if (usersInRoom.includes(modifiedUsername)) {
+        count++;
+        modifiedUsername = `${newUsername} (${count})`;
+      }
+    
+      const message = `${modifiedUsername} joined the room`;
+    
+      setuserLog((prevMessages) => [...prevMessages, message]);
+    
+      setUsersInRoom((prev) => [...prev, modifiedUsername]);
+    
+      const newLog = {
+        message: message,
+        socketID: "server",
+      };
+      setMessages((prev) => [...prev, newLog]);
+    });
 
     socket.on("exitLog", (userLeft) => {
-      console.log(`${userLeft.username} left the room`);
-      const message = `${userLeft.username} left the room`;
-      setuserLog((prevMessages) => [...prevMessages, message]);
+      const newLog = `${userLeft} left the room`;
+  setUsersInRoom((prevUsers) => prevUsers.filter((username) => username !== userLeft));
+      const newLogMsg= {
+        "message": newLog,
+        "socketID": "server"
+      }
+      setMessages((prev) => [...prev, newLogMsg]);
     })
+
+
     // Clean up by removing event listeners when the component unmounts
     return () => {
       socket.off('chatmsg');
@@ -90,9 +100,22 @@ function App() {
       socket.off('exitLog');
   };
   }, []);
+  useEffect(() => {
+    // ... (other code)
+
+    // Check if messageContainerRef has changed, and scroll to the new message
+    if (messageContainerRef.current) {
+      scrollToLastMessage();
+    }
+  }, [messages, messageContainerRef]);
+
+  // Function to scroll to the last message smoothly
+  const scrollToLastMessage = () => {
+    messageContainerRef.current.scrollIntoView({ behavior: 'smooth' });
+  };
+
     //END USE EFFECT 
   const exitRoom = () => {
-    console.log('exiting');
     setMessage("");
     setUsername("");
     setRoom(0);
@@ -157,10 +180,10 @@ function App() {
             
             {/* CONTAINER HEADER */}
             <div className="header flex">
-              <h1 className='text-center flex items-center justify-center text-4xl w-full h-28 mt-4'>Chat.io 💬</h1>
+              <h1 className='header-text text-center flex items-center justify-center text-4xl w-full h-28 mt-4'>Chat.io 💬</h1>
               <button 
                 onClick={()=>exitRoom()} 
-                className='p-10'>
+                className='p-10' id="exitBtn">
                   ✖️
               </button>
             </div>
@@ -193,21 +216,26 @@ function App() {
               {/* MESSAGES CONTAINER */}
 
               <ul className="msgs-container p-4 flex flex-col gap-4 flex-grow overflow-y-auto">
-              {messages.map((msg) => (
-              <li
-                key={msg.id}
-                className={`message ${msg.username === username ? 'self-user' : ''}`}
-              >
-              {msg.username} 
-                <span className={`bg-blue-500 p-3 rounded-full h-20 w-3/5 flex items-center flex-wrap pl-8 message ${msg.username === username ? 'self-message' : ''} ${msg.socketID === 'server' ? 'server-log' : ''}`}>
-                  <p className={`${msg.socketID === 'server' ? 'server-log' : ''}`}>
-                  {msg.message}
-                  </p>
-                </span>
-              </li>
-            ))}
-
-              </ul>
+                  {messages.map((msg, index) => (
+                    <li
+                      key={msg.id}
+                      className={`message ${msg.username === username ? 'self-user' : ''}`}
+                    >
+                      <h1 className={`message ${msg.username === username ? 'self-username' : 'not-mine'}`}>
+                        
+                      {msg.username} 
+                      </h1>
+                      <span className={`bg-blue-500 p-3 rounded-full h-20 w-3/5 flex items-center flex-wrap pl-8 message ${msg.username === username ? 'self-message' : ''} ${msg.socketID === 'server' ? 'server-log' : ''}`}>
+                        <p className={`${msg.socketID === 'server' ? 'server-log' : ''}`}>
+                          {msg.message}
+                        </p>
+                      </span>
+                      {index === messages.length - 1 && (
+                        <div ref={messageContainerRef}></div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
 
             </div>
             {/* END MAIN MIDDLE SECTION W/MESSAGES && USERS */}
@@ -238,7 +266,7 @@ function App() {
               <div className='what'> {/* ".1px solid transparent border, dont know why not having this causes big gap on top of screen, deleting tailwind fixes it. idk ??" */}
                   
                   <div className='start-container mt-20 bg-blue-200 rounded-lg shadow-lg shadow-white mx-auto'>
-                        <h1 className='text-center flex items-center justify-center text-4xl w-full h-28 mt-4'>Chat.io 💬</h1>
+                        <h1 className='start-header text-center flex items-center justify-center text-4xl w-full h-28 mt-4'>Chat.io 💬</h1>
 
                           <div className="joinInputs flex flex-col w-full items-center justify-around h-full px-16">
                           
