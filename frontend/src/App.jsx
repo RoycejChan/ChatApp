@@ -261,7 +261,14 @@ function App() {
             </div> 
           </div>
 
+
+
+
           : 
+
+
+
+
           // DISPLAY WHEN USER ENTERS SITE 
               <div className='what'> {/* ".1px solid transparent border, dont know why not having this causes big gap on top of screen, deleting tailwind fixes it. idk ??" */}
                   
